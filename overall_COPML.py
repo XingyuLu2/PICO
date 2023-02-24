@@ -166,9 +166,11 @@ elif rank <= N:
             # receive the SS of data points
             data_SS = np.empty(m_j*d, dtype='int64')
             comm.Recv(data_SS, source=j)
+            comm_volume += (m_i*d * 64)
             # receive the SS of labels
             label_SS = np.empty(m_j*1, dtype='int64')
             comm.Recv(label_SS, source=j)
+            comm_volume += (m_i*1 * 64)
             #reshape to the normal shape
             data_SS = np.reshape(data_SS, (m_j, d)).astype('int64')
             label_SS = np.reshape(label_SS, (m_j, 1)).astype('int64')
@@ -196,6 +198,7 @@ elif rank <= N:
         else:
             data = np.empty(d*1, dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (d*1 * 64)
             data = np.reshape(data, (d, 1)).astype('int64')
             w_SS_T[j-1,:,:] = data
     # compute the SS of the whole initialized model
@@ -221,6 +224,7 @@ elif rank <= N:
         else:
             data = np.empty((int(m/K))*d, dtype='int64')
             comm.Recv(data, source=j+1)
+            comm_volume += ((m/K)*d * 64)
             dec_input[j-group_stt_idx,:] = data # coefficients for the polynomial
     # 1.3.  reconstruct the secret : get X_LCC
     X_LCC_dec = SSS_decoding(dec_input, group_idx_set, p)
@@ -256,6 +260,7 @@ elif rank <= N:
         else:
             data = np.empty(d*1, dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (d*1 * 64)
             data = np.reshape(data, (d, 1)).astype('int64')
             XTy_SS_T[j-1,:,:] = data
     XTy_SS_T = np.mod(XTy_SS_T.sum(axis=0), p)
@@ -291,6 +296,7 @@ elif rank <= N:
             else:
                 data = np.empty(d, dtype='int64')
                 comm.Recv(data, source=j+1)
+                comm_volume += (d*1 * 64)
                 dec_input[j-group_stt_idx,:] = data # coefficients for the polynomial
         # 1.3. reconstruct the secret : get w_LCC
         w_LCC_dec = SSS_decoding(dec_input, group_idx_set, p) 
@@ -318,6 +324,7 @@ elif rank <= N:
             else:
                 data = np.empty(d, dtype='int64')
                 comm.Recv(data, source=j)
+                comm_volume += (d*1 * 64)
                 dec_input[j-1,:] = data # coefficients for the polynomial
         # 4.2. decode f_eval over the secret share
         dec_out = LCC_decoding(dec_input,f_deg,N,K,T, range(RT), p)
@@ -333,6 +340,6 @@ elif rank <= N:
         # update the model
         w_SS_T = np.mod(w_SS_T - grad_trunc_SS_T, p)
                                             
-    np.savetxt("testing_results/"+str(N)+"_case/COPML_K-"+str(K)+"_T-"+str(T)+"_client-"+str(rank)+"_MNIST.txt", np.array([comm_volume]))
+    np.savetxt("testing_results/"+str(N)+"_case/COPML_K-"+str(K)+"_T-"+str(T)+"_client-"+str(rank)+"CIFAR10.txt", np.array([comm_volume]))
     
 

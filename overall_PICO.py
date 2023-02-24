@@ -197,6 +197,7 @@ elif rank <= N:
             m_j = comm.recv(source=j)
             data = np.empty(int(m_j/K)*d, dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (np.prod(data.shape) * 64)
             R_tilde_recv.append(np.reshape(data, (int(m_j/K), d)).astype('int64'))
 
     ### Online Computation
@@ -251,6 +252,7 @@ elif rank <= N:
         else:
             data = np.empty(int(d/((N-T)*K)), dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (np.prod(data.shape) * 64)
             a_tilde_recv[j-1] = data
     # compute the a_tilde for client-i
     a_tilde_i = np.dot(M_matrix, a_tilde_recv)
@@ -270,6 +272,7 @@ elif rank <= N:
         else:
             data = np.empty(int(d/(N-T)), dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (np.prod(data.shape) * 64)
             a_i_SS_recv[j-1] = data
     # compute the a_i tilde
     a_SS_T = np.dot(M_matrix, a_i_SS_recv)
@@ -292,6 +295,7 @@ elif rank <= N:
         else:
             data = np.empty(int(d/K), dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (np.prod(data.shape) * 64)
             yi_LCC_recv[j-1] = data
     # compute the a_hat
     a_hat = np.sum(yi_LCC_recv, axis=0) - a_tilde_i
@@ -346,6 +350,7 @@ elif rank <= N:
         else:
             data = np.empty(int(d/(N-T)), dtype='int64')
             comm.Recv(data, source=j)
+            comm_volume += (np.prod(data.shape) * 64)
             w_SS_T[j-1] = data
     # compute the SS of the whole initialized model
     w_SS_T = np.dot(M_matrix, w_SS_T)
@@ -379,6 +384,7 @@ elif rank <= N:
             else:
                 data = np.empty(int(d/(N-T)), dtype='int64')
                 comm.Recv(data, source=j)
+                comm_volume += (np.prod(data.shape) * 64)
                 r_LCC_recv[j-1,:] = data
         # compute the r_i tilde
         r_tilde_i = np.dot(M_matrix, r_LCC_recv)
@@ -399,6 +405,7 @@ elif rank <= N:
             else:
                 data = np.empty(int(d/(N-T)), dtype='int64')
                 comm.Recv(data, source=j)
+                comm_volume += (np.prod(data.shape) * 64)
                 r_SS_recv[j-1,:] = data
         # compute the r_i tilde
         r_SS_i = np.dot(M_matrix, r_LCC_recv)
@@ -456,6 +463,7 @@ elif rank <= N:
             else:
                 data = np.empty(int(d/(N-T)), dtype="int64")
                 comm.Recv(data, source=j)
+                comm_volume += (np.prod(data.shape) * 64)
                 u_i_LCC_recv[j-1] = data
         u_LCC = np.dot(M_matrix, u_i_LCC_recv)
         u_LCC = np.reshape(u_LCC, (d,1))
@@ -475,6 +483,7 @@ elif rank <= N:
             else:
                 data = np.empty(int(d/(N-T)), dtype="int64")
                 comm.Recv(data, source=j)
+                comm_volume += (np.prod(data.shape) * 64)
                 sum_u_ik_SS_recv[j-1] = data
         # multiple by M matrix for the sum ui_SS
         sum_ui_SS_T = np.dot(M_matrix, sum_u_ik_SS_recv)
